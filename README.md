@@ -120,8 +120,6 @@ Provides data-driven insights to support:
 ### Data Sources
 
 - ChargePoint Charging Session Data
-- Blink Charging Session Data
-- EV Charger Work Orders
 - Historical Charging Utilization Data
 
 ### Forecasting Inputs
