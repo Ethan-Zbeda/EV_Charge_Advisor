@@ -1,6 +1,7 @@
 import os
 import json
 
+from PIL import Image, ImageDraw, ImageOps
 import pandas as pd
 import requests
 import streamlit as st
@@ -90,6 +91,34 @@ st.markdown(
 
 DATA_PATH = Path(__file__).parent / "chargepoint_sessions.csv"
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+def make_circular_avatar(path, size=256, padding=0.0):
+    """Load an image, fit the whole thing (zoomed out) onto a square canvas
+    with transparent padding, then mask it into a circle so Streamlit's avatar
+    shows the full picture instead of a cropped/zoomed close-up."""
+    img = Image.open(path).convert("RGBA")
+
+    # Scale the full image to fit inside the circle, leaving a margin so it
+    # isn't zoomed in. `padding` is the fraction of the canvas kept as margin.
+    inner = int(size * (1 - padding))
+    fitted = ImageOps.contain(img, (inner, inner))
+
+    # Center the fitted image on a white square canvas. White matches the
+    # icon's own background, so the leftover side bars blend in seamlessly
+    # (a transparent canvas would turn black once the circular mask is applied).
+    canvas = Image.new("RGBA", (size, size), (255, 255, 255, 255))
+    offset = ((size - fitted.width) // 2, (size - fitted.height) // 2)
+    canvas.paste(fitted, offset, fitted)
+
+    # Apply a circular alpha mask so only the corners outside the circle are
+    # transparent; everything inside stays the opaque white badge.
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, size, size), fill=255)
+    canvas.putalpha(mask)
+    return canvas
+
+
+BOT_AVATAR = make_circular_avatar(Path(__file__).parent / "boticon.jpg")
 
 
 def parse_hms(value):
@@ -372,7 +401,8 @@ def render_chatbot(context):
     chat_box = st.container(height=320)
     with chat_box:
         for msg in st.session_state.chat_messages:
-            with st.chat_message(msg["role"]):
+            avatar = BOT_AVATAR if msg["role"] == "assistant" else "user"
+            with st.chat_message(msg["role"], avatar=avatar):
                 st.markdown(msg["content"])
 
     prompt = st.chat_input("Ask about your charging forecast…")
@@ -383,7 +413,7 @@ def render_chatbot(context):
     with chat_box:
         with st.chat_message("user"):
             st.markdown(prompt)
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=BOT_AVATAR):
             try:
                 history = [
                     {"role": m["role"], "content": m["content"]}
