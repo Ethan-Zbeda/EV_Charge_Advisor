@@ -14,7 +14,7 @@ This is a Streamlit MVP for the AI Hackathon employee dashboard.
 ## How to run
 
 ```bash
-cd ev-charge-advisor/employee_dashboard
+cd ev_charge_advisor/employee_dashboard
 pip install streamlit pandas plotly
 streamlit run app.py
 ```
