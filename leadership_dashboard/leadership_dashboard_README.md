@@ -44,7 +44,7 @@ Streaming chat assistant powered by a local [Ollama](https://ollama.com) model (
 ## How to run
 
 ```bash
-cd leadership_dashboard
+cd ev-charge-advisor/leadership_dashboard
 pip install streamlit pandas plotly requests
 python -m streamlit run app.py
 ```
